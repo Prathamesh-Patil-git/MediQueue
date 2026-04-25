@@ -51,6 +51,20 @@ To properly perform and test the system, follow this sequence:
 5. **Run the Scheduler**: Navigate to the **Scheduler** tab and click "Generate Optimal Schedule". The Greedy Algorithm will pop everyone out of the queue and insert them into the AVL Tree, assigning perfect 15-minute slots based on priority.
 6. **Compare Fairness**: Finally, go to the **Comparison** tab. Run a side-by-side analysis of "Pure Urgency" vs "Aging-Based" scheduling to see how the mathematical aging bonus solves patient starvation and improves Jain's Fairness Index.
 
+## ⚙️ Core Functions & How They Work (Under the Hood)
+
+1. **Patient Registration & Triage:**
+   When a patient is registered, the system calculates a composite **Priority Score** (Urgency + Age Bonus + Wait Time). The patient is then inserted into the **Max Heap** ($O(\log n)$) to ensure the highest priority patient is always at the root. Their full profile is simultaneously stored in a **Hash Table** for instant $O(1)$ ID lookups.
+
+2. **Greedy Scheduler (Dynamic Allocation):**
+   When the scheduler is run, it repeatedly extracts the maximum element from the Max Heap (the most urgent patient). It then searches the **AVL Tree** for the earliest available 15-minute time gap. Once found, the appointment is assigned and inserted into the AVL Tree, which auto-balances itself to maintain $O(\log n)$ search speeds for future slot lookups.
+
+3. **Anti-Starvation (Priority Aging):**
+   To prevent "Low" urgency patients from waiting forever, an aging function runs periodically. Every 10 minutes of waiting grants a patient a **+5 Priority Score Bonus**. The system recursively updates the Max Heap with these new scores so older patients naturally bubble up to the top of the queue.
+
+4. **Patient Search Autocomplete:**
+   As you type a patient's name in the Lookup tab, the system traverses a custom **Trie (Prefix Tree)**. It instantly returns all patient IDs that match the prefix ($O(k)$ time) without having to scan the entire database, proving highly efficient for large hospitals.
+
 ---
 
 ## 🏗 Project Architecture & Flow Chart
