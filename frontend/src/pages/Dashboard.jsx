@@ -73,25 +73,20 @@ export default function Dashboard() {
     }
     
     const utterance = new SpeechSynthesisUtterance(announcement);
-    utterance.rate = 0.82; // Calmer, slightly slower speed
-    utterance.pitch = 1.1; // Slightly higher pitch for clarity
-    
-    // Attempt to pick an Indian voice if available
-    const voices = window.speechSynthesis.getVoices();
-    // Look for Indian English (en-IN) or Hindi (hi-IN) voices
-    const preferredVoice = voices.find(v => 
-      v.lang.includes('IN') || 
-      v.name.includes('India') || 
-      v.name.includes('Rishi') || 
-      v.name.includes('Heera') ||
-      v.name.includes('Veena')
-    );
-    
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
-    }
-    
-    window.speechSynthesis.speak(utterance);
+    const speak = (text) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.82;
+      utterance.pitch = 1.1;
+      
+      const voices = window.speechSynthesis.getVoices();
+      // Prioritize en-IN or hi-IN voices
+      const indianVoice = voices.find(v => v.lang === 'en-IN' || v.lang === 'hi-IN' || v.name.includes('India') || v.name.includes('Rishi') || v.name.includes('Heera'));
+      
+      if (indianVoice) utterance.voice = indianVoice;
+      window.speechSynthesis.speak(utterance);
+    };
+
+    speak(announcement);
 
     setLoading(true); 
     try { 
