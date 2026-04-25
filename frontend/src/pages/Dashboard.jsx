@@ -59,7 +59,30 @@ export default function Dashboard() {
     return () => clearInterval(intervalRef.current);
   }, []);
 
-  const handleProcess = async () => { setLoading(true); try { await processNext(); await fetchData(); } catch {} setLoading(false); };
+  const handleProcess = async () => { 
+    if (queue.length === 0) return;
+    
+    // Voice Announcement Logic
+    const currentPatient = queue[0];
+    const upcomingPatient = queue.length > 1 ? queue[1] : null;
+    const roomNo = Math.floor(Math.random() * 5) + 1; // Random room 1-5
+    
+    let announcement = `Patient ${currentPatient.name}, please go to room number ${roomNo}.`;
+    if (upcomingPatient) {
+      announcement += ` Patient ${upcomingPatient.name}, please be ready.`;
+    }
+    
+    const utterance = new SpeechSynthesisUtterance(announcement);
+    utterance.rate = 0.9; // Slightly slower for clarity
+    window.speechSynthesis.speak(utterance);
+
+    setLoading(true); 
+    try { 
+      await processNext(); 
+      await fetchData(); 
+    } catch {} 
+    setLoading(false); 
+  };
   const handleAge = async () => { try { await triggerAging(); await fetchData(); } catch {} };
   const formatTime = (ts) => ts ? new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
 
