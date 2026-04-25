@@ -1,21 +1,15 @@
-export default function UrgencyBadge({ urgency }) {
-  const classMap = {
-    Critical: 'badge-critical',
-    High: 'badge-high',
-    Medium: 'badge-medium',
-    Low: 'badge-low',
-  };
-  const cls = classMap[urgency] || 'badge-low';
+const config = {
+  Critical: { label: 'EMERGENT', className: 'badge-critical' },
+  High: { label: 'URGENT', className: 'badge-high' },
+  Medium: { label: 'STABLE', className: 'badge-medium' },
+  Low: { label: 'ROUTINE', className: 'badge-low' },
+};
 
+export default function UrgencyBadge({ urgency }) {
+  const c = config[urgency] || config.Low;
   return (
-    <span
-      className={`${cls} inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide`}
-    >
-      {urgency === 'Critical' && '🔴 '}
-      {urgency === 'High' && '🟠 '}
-      {urgency === 'Medium' && '🔵 '}
-      {urgency === 'Low' && '🟢 '}
-      {urgency}
+    <span className={`badge ${c.className}`} style={{ fontSize: '10px', letterSpacing: '0.04em', fontWeight: 800 }}>
+      {c.label}
     </span>
   );
 }

@@ -1,39 +1,38 @@
 export default function FairnessGauge({ value, label }) {
-  // value is 0 to 1
   const percentage = Math.round((value || 0) * 100);
   const circumference = 2 * Math.PI * 45;
   const offset = circumference - (percentage / 100) * circumference;
 
-  // Color based on fairness: green > 0.8, amber > 0.5, red < 0.5
-  let color = 'var(--color-critical)';
-  if (value >= 0.8) color = 'var(--color-low)';
-  else if (value >= 0.5) color = 'var(--color-high)';
+  let color = '#dc2626';
+  if (value >= 0.8) color = '#16a34a';
+  else if (value >= 0.5) color = '#d97706';
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative" style={{ width: 120, height: 120 }}>
-        <svg width="120" height="120" viewBox="0 0 120 120">
-          {/* Background circle */}
-          <circle cx="60" cy="60" r="45"
-            fill="none" stroke="var(--color-border)" strokeWidth="8" />
-          {/* Progress arc */}
-          <circle cx="60" cy="60" r="45"
-            fill="none" stroke={color} strokeWidth="8"
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+      <div style={{ position: 'relative', width: 130, height: 130 }}>
+        <svg width="130" height="130" viewBox="0 0 130 130">
+          <circle cx="65" cy="65" r="45" fill="none" stroke="#dee2e6" strokeWidth="10" />
+          <circle cx="65" cy="65" r="45" fill="none" stroke={color} strokeWidth="10"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
-            transform="rotate(-90 60 60)"
-            style={{ transition: 'stroke-dashoffset 1s ease-out, stroke 0.5s ease' }}
-          />
+            transform="rotate(-90 65 65)"
+            style={{ transition: 'stroke-dashoffset 1s ease-out, stroke 0.5s ease' }} />
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold" style={{ color }}>
+        <div style={{
+          position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{ fontSize: '28px', fontWeight: 800, color }}>
             {value != null ? value.toFixed(2) : '—'}
+          </span>
+          <span style={{ fontSize: '10px', fontWeight: 600, color: '#74777f' }}>
+            / 1.00
           </span>
         </div>
       </div>
-      <span className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
-        {label || 'Fairness Index'}
+      <span style={{ fontSize: '11px', fontWeight: 600, color: '#74777f', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        {label || "Jain's Fairness Index"}
       </span>
     </div>
   );
