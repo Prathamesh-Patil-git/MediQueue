@@ -76,14 +76,15 @@ export default function Dashboard() {
     utterance.rate = 0.82; // Calmer, slightly slower speed
     utterance.pitch = 1.1; // Slightly higher pitch for clarity
     
-    // Attempt to pick a more professional/hospital-like voice if available
+    // Attempt to pick an Indian voice if available
     const voices = window.speechSynthesis.getVoices();
-    // Look for common high-quality English female voices
+    // Look for Indian English (en-IN) or Hindi (hi-IN) voices
     const preferredVoice = voices.find(v => 
-      v.name.includes('Zira') || 
-      v.name.includes('Female') || 
-      v.name.includes('Samantha') || 
-      v.name.includes('Victoria')
+      v.lang.includes('IN') || 
+      v.name.includes('India') || 
+      v.name.includes('Rishi') || 
+      v.name.includes('Heera') ||
+      v.name.includes('Veena')
     );
     
     if (preferredVoice) {
