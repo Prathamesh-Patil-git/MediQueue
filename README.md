@@ -245,22 +245,49 @@ MediQueue/
 
 ## 📡 API Reference
 
-### Patient & Queue APIs
+### Patient APIs
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/patient/register` | Register a new patient |
 | `GET` | `/patient/{id}` | Lookup by ID (Hash Table O(1)) |
+| `DELETE` | `/patient/{id}` | Remove patient |
 | `GET` | `/patient/search/{prefix}` | Trie autocomplete search |
-| `GET` | `/queue` | Get priority-sorted queue |
-| `POST` | `/queue/process` | Extract max from heap |
 
-### Scheduler & Simulation APIs
+### Queue APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/queue` | Get priority-sorted queue |
+| `GET` | `/queue/next` | Peek at highest priority |
+| `POST` | `/queue/process` | Extract max from heap |
+| `PUT` | `/queue/age` | Trigger priority aging pass |
+
+### Scheduler APIs
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/schedule/run` | Run greedy scheduling |
 | `GET` | `/schedule` | Get full schedule (AVL in-order) |
+| `GET` | `/schedule/stats` | Get scheduling metrics |
+
+### Simulation APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
 | `POST` | `/simulation/start` | Start Poisson simulation |
+| `POST` | `/simulation/stop` | Stop simulation |
+| `GET` | `/simulation/status` | Get simulation status |
+| `POST` | `/simulation/starvation` | Start starvation scenario |
+
+### Comparison APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
 | `POST` | `/compare` | Run A vs B comparison |
+| `GET` | `/compare/result` | Get last comparison |
+
+### Utility APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/logs` | Activity log (last 200) |
+| `POST` | `/reset` | Reset all state |
+| `GET` | `/health` | Health check |
 
 ---
 
