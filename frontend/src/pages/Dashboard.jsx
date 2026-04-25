@@ -73,7 +73,23 @@ export default function Dashboard() {
     }
     
     const utterance = new SpeechSynthesisUtterance(announcement);
-    utterance.rate = 0.9; // Slightly slower for clarity
+    utterance.rate = 0.82; // Calmer, slightly slower speed
+    utterance.pitch = 1.1; // Slightly higher pitch for clarity
+    
+    // Attempt to pick a more professional/hospital-like voice if available
+    const voices = window.speechSynthesis.getVoices();
+    // Look for common high-quality English female voices
+    const preferredVoice = voices.find(v => 
+      v.name.includes('Zira') || 
+      v.name.includes('Female') || 
+      v.name.includes('Samantha') || 
+      v.name.includes('Victoria')
+    );
+    
+    if (preferredVoice) {
+      utterance.voice = preferredVoice;
+    }
+    
     window.speechSynthesis.speak(utterance);
 
     setLoading(true); 
