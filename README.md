@@ -10,23 +10,21 @@
 <p align="center">
   A full-stack healthcare scheduling platform built on custom data structures for real-time patient triage, greedy scheduling, and fairness analysis.
 </p>
-<p align="center"><em>DSAA Course Project — SY IoT, Semester 4</em></p>
+<p align="center"><em>DSAA Course Project — Group 39 — SY IoT, Semester 4</em></p>
 
 ---
 
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Data Structures](#-data-structures)
-- [Project Structure](#-project-structure)
+- [How It Works (System Workflow)](#-how-it-works-system-workflow)
+- [Project Architecture & Flow Chart](#-project-architecture--flow-chart)
+- [Features & Data Structures](#-features--data-structures)
 - [Getting Started](#-getting-started)
 - [Login Credentials](#-login-credentials)
-- [API Reference](#-api-reference)
-- [Pages & Screenshots](#-pages--screenshots)
 - [Algorithm Details](#-algorithm-details)
-- [Contributors](#-contributors)
+- [Project Structure](#-project-structure)
+- [API Reference](#-api-reference)
 
 ---
 
@@ -43,7 +41,69 @@ The platform provides:
 
 ---
 
-## ✨ Features
+## 🔄 How It Works (System Workflow)
+
+To properly perform and test the system, follow this sequence:
+
+1. **Login & Authentication**: Use the provided staff credentials (e.g., `doctor@mediqueue.org`) to log securely into the dashboard.
+2. **Register Patients**: Head to the **Register** tab. Manually enter patient details. Notice how the system automatically calculates a composite priority score based on age and emergency urgency.
+3. **Run the Simulation**: Go to the **Simulation** tab to simulate a real hospital environment. Set the arrival rate (e.g., 5 patients/min) and start the simulation. The backend will use Poisson distribution to flood the system with random patients.
+4. **Monitor the Dashboard**: Switch to the **Dashboard**. Watch the queue fill up in real-time. Notice the "Live Activity Log" tracking arrivals. Click "Process Next Patient" to extract the highest-priority patient (O(1) peek, O(log n) extract from the Max Heap).
+5. **Run the Scheduler**: Navigate to the **Scheduler** tab and click "Generate Optimal Schedule". The Greedy Algorithm will pop everyone out of the queue and insert them into the AVL Tree, assigning perfect 15-minute slots based on priority.
+6. **Compare Fairness**: Finally, go to the **Comparison** tab. Run a side-by-side analysis of "Pure Urgency" vs "Aging-Based" scheduling to see how the mathematical aging bonus solves patient starvation and improves Jain's Fairness Index.
+
+---
+
+## 🏗 Project Architecture & Flow Chart
+
+MediQueue follows a decoupled Client-Server architecture. The React frontend interacts with the FastAPI backend entirely through RESTful APIs, ensuring modularity.
+
+```mermaid
+graph TD
+    %% Entities
+    User((Hospital Staff))
+    React[React Frontend Vite]
+    FastAPI[FastAPI Backend]
+    
+    %% Data Structures
+    Heap[(Max Heap\nPriority Queue)]
+    AVL[(AVL Tree\nSchedule)]
+    Hash[(Hash Table\nRegistry)]
+    Trie[(Trie\nAutocomplete)]
+    
+    %% Flows
+    User -->|Logs in & interacts| React
+    React -->|REST API Calls| FastAPI
+    
+    FastAPI -->|1. Register Patient| Hash
+    FastAPI -->|2. Index Name| Trie
+    FastAPI -->|3. Calculate Score\n& Insert| Heap
+    
+    FastAPI -->|4. Greedy Scheduler\nExtract Max| Heap
+    FastAPI -->|5. Insert Time Slot| AVL
+    
+    %% Background Tasks
+    Sim[Poisson Simulator] -.->|Auto-Generates| FastAPI
+    Age[Aging Engine] -.->|+5 Priority Bonus| Heap
+    
+    %% Styling
+    classDef frontend fill:#61DAFB,stroke:#333,stroke-width:2px,color:#000
+    classDef backend fill:#009688,stroke:#333,stroke-width:2px,color:#fff
+    classDef ds fill:#FF9800,stroke:#333,stroke-width:2px,color:#000
+    
+    class React frontend
+    class FastAPI,Sim,Age backend
+    class Heap,AVL,Hash,Trie ds
+```
+
+### Architecture Components:
+1. **Presentation Layer (React)**: Handles state management, protected routes, and data visualization (Recharts).
+2. **Controller Layer (FastAPI)**: Exposes endpoints, handles request validation via Pydantic, and coordinates background tasks.
+3. **Data Layer (In-Memory DS)**: The core engine. Instead of a traditional SQL database, MediQueue maintains global state across four custom-built, highly-optimized data structures.
+
+---
+
+## ✨ Features & Data Structures
 
 | Module | Description | Data Structure |
 |--------|-------------|----------------|
@@ -54,108 +114,6 @@ The platform provides:
 | **Strategy Comparison** | Head-to-head Pure Urgency vs Aging-Based fairness analysis | Full pipeline |
 | **Patient Lookup** | O(1) ID search + Trie prefix autocomplete | Hash Table + Trie |
 | **Priority Aging** | +5 priority bonus per 10 minutes waiting | Max Heap rebuild |
-| **Starvation Scenario** | 80% Critical flood test to expose fairness issues | Simulation engine |
-
----
-
-## 🛠 Tech Stack
-
-### Backend
-| Technology | Purpose |
-|------------|---------|
-| **Python 3.10+** | Core language |
-| **FastAPI 0.115** | REST API framework |
-| **Uvicorn** | ASGI server |
-| **Pydantic** | Data validation |
-| **APScheduler** | Background simulation tasks |
-
-### Frontend
-| Technology | Purpose |
-|------------|---------|
-| **React 18** | UI framework |
-| **Vite 8** | Build tool & dev server |
-| **Recharts** | Data visualization (charts) |
-| **React Router v6** | Client-side routing |
-| **Material Symbols** | Icon system |
-| **Inter (Google Fonts)** | Typography |
-
-### Design System
-- **"Clinical Precision"** — Dark navy sidebar (#001F3F) + white content area
-- **4-tier urgency palette**: Critical (Red), High (Amber), Medium (Blue), Low (Green)
-- **Inter** typography with JetBrains Mono for code/IDs
-
----
-
-## 🏗 Data Structures
-
-All data structures are implemented **from scratch** in `backend/structures/`:
-
-### 1. Max Heap (`max_heap.py`)
-- **Purpose**: Priority queue for patient triage
-- **Operations**: `insert()` O(log n), `extract_max()` O(log n), `peek()` O(1)
-- **Key Feature**: Maintains highest-priority patient at root for O(1) access
-
-### 2. AVL Tree (`avl_tree.py`)
-- **Purpose**: Self-balancing BST for appointment scheduling
-- **Operations**: `insert()` O(log n), `search()` O(log n), `in_order()` O(n)
-- **Key Feature**: Automatic rotations maintain O(log n) guaranteed height
-
-### 3. Hash Table (`hash_table.py`)
-- **Purpose**: Patient registry for instant ID lookup
-- **Operations**: `set()` O(1) avg, `get()` O(1) avg, `delete()` O(1) avg
-- **Key Feature**: Chaining-based collision resolution with dynamic resizing
-
-### 4. Trie (`trie.py`)
-- **Purpose**: Prefix tree for patient name autocomplete
-- **Operations**: `insert()` O(k), `search()` O(k), `delete()` O(k)
-- **Key Feature**: Returns all patient IDs matching a name prefix
-
----
-
-## 📁 Project Structure
-
-```
-MediQueue/
-├── backend/
-│   ├── structures/           # Custom data structures (from scratch)
-│   │   ├── max_heap.py       # Priority queue
-│   │   ├── avl_tree.py       # Balanced BST for scheduling
-│   │   ├── hash_table.py     # Patient registry
-│   │   └── trie.py           # Name autocomplete
-│   ├── main.py               # FastAPI app + all REST endpoints
-│   ├── models.py             # Pydantic models + urgency levels
-│   ├── scheduler.py          # Greedy scheduling + aging logic
-│   ├── simulation.py         # Poisson arrival simulation engine
-│   ├── comparison.py         # Strategy A vs B comparison
-│   └── state.py              # Global application state
-├── frontend/
-│   ├── src/
-│   │   ├── components/       # Reusable UI components
-│   │   │   ├── Sidebar.jsx   # Dark navy navigation sidebar
-│   │   │   ├── QueueTable.jsx# Live patient queue table
-│   │   │   ├── StatsBar.jsx  # Dashboard stat cards
-│   │   │   ├── UrgencyBadge.jsx # Triage level badges
-│   │   │   └── FairnessGauge.jsx # SVG gauge for fairness index
-│   │   ├── pages/            # Route-level page components
-│   │   │   ├── Home.jsx      # Landing page
-│   │   │   ├── Login.jsx     # Staff authentication
-│   │   │   ├── Dashboard.jsx # Real-time queue monitoring
-│   │   │   ├── Register.jsx  # Patient registration form
-│   │   │   ├── Scheduler.jsx # Greedy scheduler interface
-│   │   │   ├── Simulation.jsx# Arrival simulation controls
-│   │   │   ├── Comparison.jsx# Strategy comparison analysis
-│   │   │   └── Lookup.jsx    # Patient search (Hash + Trie)
-│   │   ├── api/api.js        # Axios API client
-│   │   ├── App.jsx           # Root layout + routing
-│   │   ├── main.jsx          # React entry point
-│   │   └── index.css         # Design system tokens + global styles
-│   ├── index.html            # HTML entry point
-│   └── package.json          # Node dependencies
-├── test_structures.py        # Unit tests for data structures
-├── test_engines.py           # Unit tests for scheduling engines
-├── requirements.txt          # Python dependencies
-└── README.md                 # This file
-```
 
 ---
 
@@ -198,6 +156,8 @@ Interactive docs at `http://localhost:8000/docs`.
 
 ### 3. Frontend Setup
 
+Open a new terminal window:
+
 ```bash
 cd frontend
 
@@ -209,10 +169,6 @@ npm run dev
 ```
 
 The frontend will be available at `http://localhost:5173`.
-
-### 4. Open in Browser
-
-Navigate to `http://localhost:5173` to access the landing page.
 
 ---
 
@@ -227,78 +183,6 @@ Navigate to `http://localhost:5173` to access the landing page.
 | 1 | `HOSP-001-01` | `doctor@mediqueue.org` | `admin@123` | Triage Supervisor |
 | 2 | `HOSP-001-02` | `nurse@mediqueue.org` | `nurse@123` | Head Nurse |
 | 3 | `HOSP-001-03` | `admin@mediqueue.org` | `superadmin@123` | System Administrator |
-
-### How to Login
-
-1. Navigate to `http://localhost:5173/login`
-2. Enter the **Hospital ID**, **Email**, and **Password** from any row above
-3. Click **Login** to access the dashboard
-4. Use the **Logout** button in the sidebar to sign out
-
-> **Note:** All dashboard routes (`/dashboard`, `/register`, `/scheduler`, `/simulation`, `/comparison`, `/lookup`) are **protected**. Accessing them without logging in will redirect you to the login page.
-
----
-
-## 📡 API Reference
-
-### Patient APIs
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/patient/register` | Register a new patient |
-| `GET` | `/patient/{id}` | Lookup by ID (Hash Table O(1)) |
-| `DELETE` | `/patient/{id}` | Remove patient |
-| `GET` | `/patient/search/{prefix}` | Trie autocomplete search |
-
-### Queue APIs
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/queue` | Get priority-sorted queue |
-| `GET` | `/queue/next` | Peek at highest priority |
-| `POST` | `/queue/process` | Extract max from heap |
-| `PUT` | `/queue/age` | Trigger priority aging pass |
-
-### Scheduler APIs
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/schedule/run` | Run greedy scheduling |
-| `GET` | `/schedule` | Get full schedule (AVL in-order) |
-| `GET` | `/schedule/stats` | Get scheduling metrics |
-
-### Simulation APIs
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/simulation/start` | Start Poisson simulation |
-| `POST` | `/simulation/stop` | Stop simulation |
-| `GET` | `/simulation/status` | Get simulation status |
-| `POST` | `/simulation/starvation` | Start starvation scenario |
-
-### Comparison APIs
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/compare` | Run A vs B comparison |
-| `GET` | `/compare/result` | Get last comparison |
-
-### Utility APIs
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/logs` | Activity log (last 200) |
-| `POST` | `/reset` | Reset all state |
-| `GET` | `/health` | Health check |
-
----
-
-## 📸 Pages & Screenshots
-
-| Page | Route | Description |
-|------|-------|-------------|
-| **Landing** | `/` | Hero section, features grid, data structures showcase, triage system explainer |
-| **Login** | `/login` | Staff authentication with HIPAA compliance notice |
-| **Dashboard** | `/dashboard` | Real-time queue table + activity log + process next |
-| **Register** | `/register` | Patient admission form + live priority score card |
-| **Scheduler** | `/scheduler` | Treatment sequence table + algorithm insights |
-| **Simulation** | `/simulation` | Arrival velocity chart + flow parameters |
-| **Comparison** | `/comparison` | Strategy A vs B with performance delta table |
-| **Lookup** | `/lookup` | ID search + name autocomplete |
 
 ---
 
@@ -315,10 +199,10 @@ Where:
 ```
 
 ### Greedy Scheduling
-1. Extract all patients from the Max Heap (sorted by priority)
-2. Assign 15-minute slots sequentially starting from time 0
-3. Insert each appointment into the AVL Tree (keyed by start time)
-4. Compute fairness metrics: max wait, Jain's Fairness Index, starvation count
+1. Extract all patients from the Max Heap (sorted by priority).
+2. Assign 15-minute slots sequentially starting from time 0.
+3. Insert each appointment into the AVL Tree (keyed by start time).
+4. Compute fairness metrics: max wait, Jain's Fairness Index, starvation count.
 
 ### Jain's Fairness Index
 ```
@@ -328,29 +212,55 @@ Where xᵢ = normalized wait time for patient i
 Range: 1/n (worst) to 1.0 (perfect fairness)
 ```
 
-### Starvation Detection
-A patient is flagged as **starving** if:
-- Urgency is `Low` or `Medium`
-- Wait time exceeds **30 minutes**
+---
 
-### Aging Mechanism
-- Every aging pass adds **+5** to all patients' priority scores
-- Prevents low-urgency patients from waiting indefinitely
-- Can be triggered manually or auto-triggered during simulation
+## 📁 Project Structure
+
+```
+MediQueue/
+├── backend/
+│   ├── structures/           # Custom data structures (from scratch)
+│   │   ├── max_heap.py       # Priority queue
+│   │   ├── avl_tree.py       # Balanced BST for scheduling
+│   │   ├── hash_table.py     # Patient registry
+│   │   └── trie.py           # Name autocomplete
+│   ├── main.py               # FastAPI app + all REST endpoints
+│   ├── models.py             # Pydantic models + urgency levels
+│   ├── scheduler.py          # Greedy scheduling + aging logic
+│   ├── simulation.py         # Poisson arrival simulation engine
+│   ├── comparison.py         # Strategy A vs B comparison
+│   └── state.py              # Global application state
+├── frontend/
+│   ├── src/
+│   │   ├── components/       # Reusable UI components
+│   │   ├── pages/            # Route-level page components
+│   │   ├── api/api.js        # Axios API client
+│   │   ├── App.jsx           # Root layout + routing
+│   │   └── index.css         # Design system tokens + global styles
+├── requirements.txt          # Python dependencies
+└── README.md                 # This file
+```
 
 ---
 
-## 👥 Contributors
+## 📡 API Reference
 
-| Name | Role |
-|------|------|
-| **Prathamesh Patil** | Full Stack Development |
+### Patient & Queue APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/patient/register` | Register a new patient |
+| `GET` | `/patient/{id}` | Lookup by ID (Hash Table O(1)) |
+| `GET` | `/patient/search/{prefix}` | Trie autocomplete search |
+| `GET` | `/queue` | Get priority-sorted queue |
+| `POST` | `/queue/process` | Extract max from heap |
 
----
-
-## 📄 License
-
-This project is built for academic purposes as part of the **DSAA (Data Structures and Algorithm Analysis)** course at SY IoT, Semester 4.
+### Scheduler & Simulation APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/schedule/run` | Run greedy scheduling |
+| `GET` | `/schedule` | Get full schedule (AVL in-order) |
+| `POST` | `/simulation/start` | Start Poisson simulation |
+| `POST` | `/compare` | Run A vs B comparison |
 
 ---
 
