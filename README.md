@@ -58,6 +58,39 @@ To properly perform and test the system, follow this sequence:
 
 MediQueue follows a decoupled Client-Server architecture. The React frontend interacts with the FastAPI backend entirely through RESTful APIs, ensuring modularity.
 
+### ASCII Architecture Diagram
+```text
++-------------------+       REST API       +-----------------------+
+|                   |  <===============>   |                       |
+|  REACT FRONTEND   |                      |    FASTAPI BACKEND    |
+|   (Vite + UI)     |                      |  (Controller Layer)   |
+|                   |                      |                       |
++--------+----------+                      +-----------+-----------+
+         |                                             |
+         | (User Input)                                | (Data Processing)
+         v                                             v
++-------------------+                      +-----------------------+
+|  Hospital Staff   |                      |   IN-MEMORY STORAGE   |
+|  (Doctor/Admin)   |                      |  (Data Structures)    |
++-------------------+                      +-----------------------+
+                                             |       |       |
+                 +---------------------------+       |       +----------------------------+
+                 |                                   |                                    |
+                 v                                   v                                    v
+         +---------------+                   +---------------+                    +---------------+
+         |  HASH TABLE   |                   |   MAX HEAP    |                    |   AVL TREE    |
+         | (O(1) Lookup) |                   |  (Triage/PQ)  |                    | (Scheduling)  |
+         +---------------+                   +---------------+                    +---------------+
+                 |                                   ^                                    ^
+                 v                                   |                                    |
+         +---------------+                   +-------+-------+                    +-------+-------+
+         |     TRIE      |                   | Aging Engine  |                    | Greedy Alg.   |
+         | (Search Auto) |                   | (+5 Priority) |                    | (Assign Slots)|
+         +---------------+                   +---------------+                    +---------------+
+```
+
+### Mermaid Flow Chart
+
 ```mermaid
 graph TD
     %% Entities
