@@ -10,7 +10,6 @@
 <p align="center">
   A full-stack healthcare scheduling platform built on custom data structures for real-time patient triage, greedy scheduling, and fairness analysis.
 </p>
-<p align="center"><em>DSAA Course Project — Group 39 — SY IoT, Semester 4</em></p>
 
 ---
 
