@@ -13,17 +13,44 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
       const [qRes, logRes, statRes] = await Promise.all([getQueue(), getLogs(), getScheduleStats()]);
-      setQueue(qRes.data.queue);
+      const queueData = qRes.data.queue;
+      setQueue(queueData);
       setQueueSize(qRes.data.size);
       setLogs(logRes.data.logs.slice(0, 50));
+      
       const s = statRes.data.stats;
+      
+      // Calculate live estimates if no schedule stats exist yet
+      let liveAvgWait = 0;
+      let liveStarvation = 0;
+      let liveFairness = 1.0;
+      
+      if (queueData.length > 0) {
+        let totalWait = 0;
+        let waitTimes = [];
+        queueData.forEach(p => {
+          // Estimate wait time (wait_time_bonus grows +5 every 10 min)
+          let wait = p.wait_time_bonus ? (p.wait_time_bonus / 5) * 10 : Math.round(p.priority_score / 4);
+          totalWait += wait;
+          waitTimes.push(wait);
+          if (wait > 40) liveStarvation++;
+        });
+        liveAvgWait = totalWait / queueData.length;
+        
+        let sumX = 0, sumX2 = 0;
+        waitTimes.forEach(x => { let val = x + 1; sumX += val; sumX2 += val * val; });
+        liveFairness = (sumX * sumX) / (queueData.length * sumX2);
+      }
+
       setStats({
         queueSize: qRes.data.size,
-        scheduled: s ? s.total_scheduled : 0,
-        fairness: s ? s.fairness_index : null,
-        starvation: s ? s.starvation_count : 0,
+        avgWait: s ? Object.values(s.avg_wait_by_urgency).reduce((a,b)=>a+b, 0) / Math.max(1, Object.keys(s.avg_wait_by_urgency).length) : liveAvgWait,
+        fairness: s ? s.fairness_index : (queueData.length > 0 ? liveFairness : null),
+        starvation: s ? s.starvation_count : liveStarvation,
       });
-    } catch {}
+    } catch (error) {
+      console.error("Dashboard fetch error:", error);
+    }
   };
 
   useEffect(() => {
@@ -54,7 +81,7 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
         {[
           { label: 'TOTAL IN QUEUE', value: stats.queueSize ?? 0, color: '#0058bc', trend: null },
-          { label: 'AVG WAIT TIME', value: stats.scheduled ? `${Math.round(stats.scheduled * 0.7)}m` : '—', color: 'var(--color-text)', trend: null },
+          { label: 'AVG WAIT TIME', value: stats.avgWait != null ? `${Math.round(stats.avgWait)}m` : '—', color: 'var(--color-text)', trend: null },
           { label: 'FAIRNESS INDEX', value: stats.fairness != null ? stats.fairness.toFixed(2) : '—', color: 'var(--color-text)', bar: true, barVal: stats.fairness },
           { label: 'STARVATION COUNT', value: stats.starvation != null ? String(stats.starvation).padStart(2, '0') : '00', color: 'var(--color-text)', alert: stats.starvation > 0 },
         ].map((s, i) => (
