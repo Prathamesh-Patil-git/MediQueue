@@ -340,12 +340,16 @@ cd MediQueue
 ### 2. Backend Setup
 
 ```bash
+# From the project root (MediQueue/)
+
 # Create virtual environment
 python -m venv venv
 
 # Activate virtual environment
-# Windows:
-venv\Scripts\activate
+# Windows (PowerShell):
+.\venv\Scripts\Activate.ps1
+# Windows (CMD):
+venv\Scripts\activate.bat
 # macOS/Linux:
 source venv/bin/activate
 
