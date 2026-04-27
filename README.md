@@ -356,9 +356,13 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Start the backend server
+# Start the backend server (MUST run from project root, not from backend/)
 uvicorn backend.main:app --reload --port 8000
 ```
+
+> [!IMPORTANT]
+> The `uvicorn` command **must** be run from the project root (`MediQueue/`), **not** from inside `backend/`.  
+> The Python imports use `from backend import ...`, so the `backend` package must be visible from the working directory.
 
 The API will be available at `http://localhost:8000`.  
 Interactive Swagger docs at `http://localhost:8000/docs`.
